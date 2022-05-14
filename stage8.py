@@ -561,221 +561,6 @@ def test_for_list(where_words_in_fundamental_group_is_sent_to, rho, covering_ver
     else:
         return "This fails the test"
 
-"""
-
-def build_homological_matrix(covering_space_edges):
-    #I am using Covering_space_edges instead of Covering_space_edge_set as for the graphs, covering space edge set doesn't include edges in the spanning tree
-    # Need to figure out why
-    n = len(covering_space_edges)
-    matrix = np.zeros((n, n))
-    return matrix
-
-def complete_homological_matrix(homological_matrix, covering_space_edges_set, spanning_tree_edges, pseudo_anosov_function, rho, dict_from_loops_to_words, list_of_all_paths_from_1, size_of_list, generators_for_free_group):
-    count = 0
-    for e in generators_for_free_group:
-        if e != ",":
-            count = count + 1
-
-    no_of_edges_in_covering_space = count * size_of_list
-
-    if len(covering_space_edges_set) == no_of_edges_in_covering_space:
-        edges_in_covering_graph = covering_space_edges_set
-        edges_in_covering_graph = sorted(edges_in_covering_graph)
-    else:
-        edges_in_covering_graph = covering_space_edges_set + spanning_tree_edges
-        edges_in_covering_graph = sorted(edges_in_covering_graph)
-
-    #print("Edges in the covering graph are: " +  str(edges_in_covering_graph))
-    #print("The Pseudo-Anosov function is: " + str(pseudo_anosov_function))
-    #print("rho is: " + str(rho))
-    #print("dict_from_loops_to_words is: " + str(dict_from_loops_to_words))
-    #print("list_of_all_paths_from_1: " + str(list_of_all_paths_from_1))
-    #print("size of list: "+ str(size_of_list))
-    #print("generators of the free group is: " + str(generators_for_free_group))
-
-    temp_rho = dict()
-
-    for i in rho.keys():
-        temp_rho[i] = rho[i]
-        #print(i)
-        matrix_associated_to_key = rho[i]
-        #print(matrix_associated_to_key)
-        inverse_of_matrix = np.linalg.inv(matrix_associated_to_key)
-        #print(inverse_of_matrix)
-        #print(generators_for_free_group[0])
-        #print(generators_for_free_group[2])
-        inverse = "-" + str(i)
-        #print(inverse)
-        temp_rho[inverse] = inverse_of_matrix
-
-
-    #print("temp_rho is: " + str(temp_rho))
-
-    key_list = list(rho.keys())
-
-    for i in edges_in_covering_graph:
-        #print("edge chosen now is: " + str(i))
-        matrix_associated_to_edge = dict_from_loops_to_words[i]
-        #print("matrix_associated_to_edge is: " + str(matrix_associated_to_edge))
-        for key in rho:
-            if np.array_equal(matrix_associated_to_edge, rho[key]):
-                word_associated_to_edge = str(key)
-        #print("The word_associated_to_edge is: " + str(word_associated_to_edge))
-        if i in spanning_tree_edges and i[0] == 1:
-            for key in pseudo_anosov_function:
-                if str(key) == word_associated_to_edge:
-                    word_we_get_after_pseudo_anosov_function_acts_on_i = pseudo_anosov_function[key]
-            #print("word_we_get_after_pseudo_anosov_function_acts_on_i is: " + str(word_we_get_after_pseudo_anosov_function_acts_on_i))
-            temp_array = []
-            alpha = [0]*size_of_list
-            alpha[0] = 1
-            base_point = numpy.array(alpha)
-            #print("basepoint: " + str(base_point))
-            starting_vertex_in_the_path_in_covering_space = base_point
-            for k in word_we_get_after_pseudo_anosov_function_acts_on_i:
-                edge_path = []
-                #print("Key is: " + str(k))
-                for key in temp_rho:
-                    if str(key) == k:
-                        for m in np.where(starting_vertex_in_the_path_in_covering_space == 1):
-                            where_is_1 = int(m)+1
-                        #print("where_is_1: " + str(where_is_1))
-                        edge_path.append(where_is_1)
-                        starting_vertex_in_the_path_in_covering_space = starting_vertex_in_the_path_in_covering_space.dot(temp_rho[key])
-                        #print("starting_vertex_in_the_path_in_covering_space" + str(starting_vertex_in_the_path_in_covering_space))
-                        for m in np.where(starting_vertex_in_the_path_in_covering_space == 1):
-                            where_is_1 = int(m) + 1
-                        #print("where is 1" + str(where_is_1))
-                        edge_path.append(where_is_1)
-                        #print(k)
-                        #print("edge path is: " + str(edge_path))
-                        if k not in key_list:
-                            #print("K not in key list")
-                            m = edge_path[0]
-                            n = edge_path[1]
-                            correct_edge = [-n,-m]
-                            #print(correct_edge)
-                            #print(edge_path)
-                            edge_path = correct_edge
-                        temp_array.append(edge_path)
-            row_index = edges_in_covering_graph.index(i)
-            #print("row_index is" + str(row_index))
-            #print("Temp row is: " + str(temp_array))
-            for l in temp_array:
-                #print(l)
-                #column_index = edges_in_covering_graph.index(tuple(l))
-                #homological_matrix[row_index][column_index] = temp_array.count(l)
-                first_coordinate = l[0]
-                second_coordinate = l[1]
-                if first_coordinate > 0:
-                    column_index = edges_in_covering_graph.index(tuple(l))
-                    homological_matrix[row_index][column_index] = homological_matrix[row_index][column_index] + 1
-                else:
-                    new_first_coordinate = tuple([abs(first_coordinate),abs(second_coordinate)])
-                    column_index = edges_in_covering_graph.index(new_first_coordinate)
-                    homological_matrix[row_index][column_index] = homological_matrix[row_index][column_index] - 1
-
-
-        else:
-            edge_i_starting_vertex = i[0]
-            #print("edge_i_starting_vertex:" + str(edge_i_starting_vertex))
-            for g in list_of_all_paths_from_1:
-                if g[-1] == edge_i_starting_vertex:
-                    path_to_edge_i = g
-            #print("path_to_edge_i: " + str(path_to_edge_i))
-            path_we_need = path_to_edge_i+[i[1]]
-            #print("path_we_need:" + str(path_we_need))
-
-            #Now we convert the path to words
-
-            new_word = []
-            x = len(path_we_need)
-            for j in range(x - 1):
-                a = path_we_need[j]
-                b = path_we_need[j + 1]
-                edge = (a, b)
-                if edge in dict_from_loops_to_words.keys():
-                    y = dict_from_loops_to_words[edge]
-                    for key in rho:
-                        if np.array_equal(rho[key], y):
-                            new_word.append(key)
-            #print("new_word" + str(new_word))
-
-            #Now we see where the word is sent to based on the pseudo-Anosov map
-
-            where_is_path_sent_to_by_pseudo_anosov_map = []
-
-            for t in new_word:
-                for key in pseudo_anosov_function:
-                    if str(key) == t:
-                        for r in pseudo_anosov_function[key]:
-                            where_is_path_sent_to_by_pseudo_anosov_map.append(r)
-            #print("where_is_path_sent_to_by_pseudo_anosov_map:" + str(where_is_path_sent_to_by_pseudo_anosov_map))
-
-            temp_array = []
-            alpha = [0] * size_of_list
-            alpha[0] = 1
-            base_point = numpy.array(alpha)
-            starting_vertex_in_the_path_in_covering_space = base_point
-            for k in where_is_path_sent_to_by_pseudo_anosov_map:
-                edge_path = []
-                for key in temp_rho:
-                    if str(key) == k:
-                        for m in np.where(starting_vertex_in_the_path_in_covering_space == 1):
-                            where_is_1 = int(m) + 1
-                        edge_path.append(where_is_1)
-                        starting_vertex_in_the_path_in_covering_space = starting_vertex_in_the_path_in_covering_space.dot(temp_rho[key])
-                        for m in np.where(starting_vertex_in_the_path_in_covering_space == 1):
-                            where_is_1 = int(m) + 1
-                        edge_path.append(where_is_1)
-                        if k not in key_list:
-                            #print("K not in key list")
-                            m = edge_path[0]
-                            n = edge_path[1]
-                            correct_edge = [-n,-m]
-                            #print(correct_edge)
-                            #print(edge_path)
-                            edge_path = correct_edge
-                        temp_array.append(edge_path)
-            row_index = edges_in_covering_graph.index(i)
-            for l in temp_array:
-                #print(l)
-                #column_index = edges_in_covering_graph.index(tuple(l))
-                #homological_matrix[row_index][column_index] = temp_array.count(l)
-                first_coordinate = l[0]
-                second_coordinate = l[1]
-                if first_coordinate > 0:
-                    column_index = edges_in_covering_graph.index(tuple(l))
-                    homological_matrix[row_index][column_index] = homological_matrix[row_index][column_index] + 1
-                else:
-                    new_first_coordinate = tuple([abs(first_coordinate),abs(second_coordinate)])
-                    column_index = edges_in_covering_graph.index(new_first_coordinate)
-                    homological_matrix[row_index][column_index] = homological_matrix[row_index][column_index] - 1
-    return homological_matrix
-
-def construct_final_homological_matrix(completed_homological_matrix, spanning_tree_edges,covering_space_edges_set, size_of_list, generators_for_free_group):
-    temp_homological_matrix = completed_homological_matrix
-    count = 0
-    for e in generators_for_free_group:
-        if e != ",":
-            count = count + 1
-
-    no_of_edges_in_covering_space = count * size_of_list
-    if len(covering_space_edges_set) == no_of_edges_in_covering_space:
-        edges_in_covering_graph = covering_space_edges_set
-        edges_in_covering_graph = sorted(edges_in_covering_graph)
-    else:
-        edges_in_covering_graph = covering_space_edges_set + spanning_tree_edges
-        edges_in_covering_graph = sorted(edges_in_covering_graph)
-    temp_array = []
-    for i in spanning_tree_edges:
-        temp_array.append(edges_in_covering_graph.index(i))
-    temp_homological_matrix = np.delete(temp_homological_matrix, temp_array, axis=0)
-    temp_homological_matrix = np.delete(temp_homological_matrix, temp_array, axis=1)
-    return temp_homological_matrix
-
-"""
-
 def build_homological_matrix(covering_space_edges,where_words_in_fundamental_group_is_sent_to):
     #I am using Covering_space_edges instead of Covering_space_edge_set as for the graphs, covering space edge set doesn't include edges in the spanning tree
     # Need to figure out why
@@ -824,152 +609,7 @@ def complete_homological_matrix(homological_matrix, covering_space_edges_set, sp
         inverse = "-" + str(i)
         #print(inverse)
         temp_rho[inverse] = inverse_of_matrix
-    """
 
-    #print("temp_rho is: " + str(temp_rho))
-
-    key_list = list(rho.keys())
-
-
-    for i in edges_in_covering_graph:
-        #print("edge chosen now is: " + str(i))
-        matrix_associated_to_edge = dict_from_loops_to_words[i]
-        #print("matrix_associated_to_edge is: " + str(matrix_associated_to_edge))
-        for key in rho:
-            if np.array_equal(matrix_associated_to_edge, rho[key]):
-                word_associated_to_edge = str(key)
-        #print("The word_associated_to_edge is: " + str(word_associated_to_edge))
-        if i in spanning_tree_edges and i[0] == 1:
-            for key in pseudo_anosov_function:
-                if str(key) == word_associated_to_edge:
-                    word_we_get_after_pseudo_anosov_function_acts_on_i = pseudo_anosov_function[key]
-            #print("word_we_get_after_pseudo_anosov_function_acts_on_i is: " + str(word_we_get_after_pseudo_anosov_function_acts_on_i))
-            temp_array = []
-            alpha = [0]*size_of_list
-            alpha[0] = 1
-            base_point = numpy.array(alpha)
-            #print("basepoint: " + str(base_point))
-            starting_vertex_in_the_path_in_covering_space = base_point
-            for k in word_we_get_after_pseudo_anosov_function_acts_on_i:
-                edge_path = []
-                #print("Key is: " + str(k))
-                for key in temp_rho:
-                    if str(key) == k:
-                        for m in np.where(starting_vertex_in_the_path_in_covering_space == 1):
-                            where_is_1 = int(m)+1
-                        #print("where_is_1: " + str(where_is_1))
-                        edge_path.append(where_is_1)
-                        starting_vertex_in_the_path_in_covering_space = starting_vertex_in_the_path_in_covering_space.dot(temp_rho[key])
-                        #print("starting_vertex_in_the_path_in_covering_space" + str(starting_vertex_in_the_path_in_covering_space))
-                        for m in np.where(starting_vertex_in_the_path_in_covering_space == 1):
-                            where_is_1 = int(m) + 1
-                        #print("where is 1" + str(where_is_1))
-                        edge_path.append(where_is_1)
-                        #print(k)
-                        #print("edge path is: " + str(edge_path))
-                        if k not in key_list:
-                            #print("K not in key list")
-                            m = edge_path[0]
-                            n = edge_path[1]
-                            correct_edge = [-n,-m]
-                            #print(correct_edge)
-                            #print(edge_path)
-                            edge_path = correct_edge
-                        temp_array.append(edge_path)
-            row_index = edges_in_covering_graph.index(i)
-            #print("row_index is" + str(row_index))
-            #print("Temp row is: " + str(temp_array))
-            for l in temp_array:
-                #print(l)
-                #column_index = edges_in_covering_graph.index(tuple(l))
-                #homological_matrix[row_index][column_index] = temp_array.count(l)
-                first_coordinate = l[0]
-                second_coordinate = l[1]
-                if first_coordinate > 0:
-                    column_index = edges_in_covering_graph.index(tuple(l))
-                    homological_matrix[row_index][column_index] = homological_matrix[row_index][column_index] + 1
-                else:
-                    new_first_coordinate = tuple([abs(first_coordinate),abs(second_coordinate)])
-                    column_index = edges_in_covering_graph.index(new_first_coordinate)
-                    homological_matrix[row_index][column_index] = homological_matrix[row_index][column_index] - 1
-
-
-        else:
-            edge_i_starting_vertex = i[0]
-            #print("edge_i_starting_vertex:" + str(edge_i_starting_vertex))
-            for g in list_of_all_paths_from_1:
-                if g[-1] == edge_i_starting_vertex:
-                    path_to_edge_i = g
-            #print("path_to_edge_i: " + str(path_to_edge_i))
-            path_we_need = path_to_edge_i+[i[1]]
-            #print("path_we_need:" + str(path_we_need))
-
-            #Now we convert the path to words
-
-            new_word = []
-            x = len(path_we_need)
-            for j in range(x - 1):
-                a = path_we_need[j]
-                b = path_we_need[j + 1]
-                edge = (a, b)
-                if edge in dict_from_loops_to_words.keys():
-                    y = dict_from_loops_to_words[edge]
-                    for key in rho:
-                        if np.array_equal(rho[key], y):
-                            new_word.append(key)
-            #print("new_word" + str(new_word))
-
-            #Now we see where the word is sent to based on the pseudo-Anosov map
-
-            where_is_path_sent_to_by_pseudo_anosov_map = []
-
-            for t in new_word:
-                for key in pseudo_anosov_function:
-                    if str(key) == t:
-                        for r in pseudo_anosov_function[key]:
-                            where_is_path_sent_to_by_pseudo_anosov_map.append(r)
-            print("where_is_path_sent_to_by_pseudo_anosov_map:" + str(where_is_path_sent_to_by_pseudo_anosov_map))
-
-            temp_array = []
-            alpha = [0] * size_of_list
-            alpha[0] = 1
-            base_point = numpy.array(alpha)
-            starting_vertex_in_the_path_in_covering_space = base_point
-            for k in where_is_path_sent_to_by_pseudo_anosov_map:
-                edge_path = []
-                for key in temp_rho:
-                    if str(key) == k:
-                        for m in np.where(starting_vertex_in_the_path_in_covering_space == 1):
-                            where_is_1 = int(m) + 1
-                        edge_path.append(where_is_1)
-                        starting_vertex_in_the_path_in_covering_space = starting_vertex_in_the_path_in_covering_space.dot(temp_rho[key])
-                        for m in np.where(starting_vertex_in_the_path_in_covering_space == 1):
-                            where_is_1 = int(m) + 1
-                        edge_path.append(where_is_1)
-                        if k not in key_list:
-                            #print("K not in key list")
-                            m = edge_path[0]
-                            n = edge_path[1]
-                            correct_edge = [-n,-m]
-                            #print(correct_edge)
-                            #print(edge_path)
-                            edge_path = correct_edge
-                        temp_array.append(edge_path)
-            row_index = edges_in_covering_graph.index(i)
-            for l in temp_array:
-                #print(l)
-                #column_index = edges_in_covering_graph.index(tuple(l))
-                #homological_matrix[row_index][column_index] = temp_array.count(l)
-                first_coordinate = l[0]
-                second_coordinate = l[1]
-                if first_coordinate > 0:
-                    column_index = edges_in_covering_graph.index(tuple(l))
-                    homological_matrix[row_index][column_index] = homological_matrix[row_index][column_index] + 1
-                else:
-                    new_first_coordinate = tuple([abs(first_coordinate),abs(second_coordinate)])
-                    column_index = edges_in_covering_graph.index(new_first_coordinate)
-                    homological_matrix[row_index][column_index] = homological_matrix[row_index][column_index] - 1
-    """
     key_list = list(rho.keys())
     for i in where_words_in_fundamental_group_is_sent_to:
         #print("word selected is" + str(i))
@@ -1102,34 +742,39 @@ def getting_the_max_asol_eigenvalue(absolute_value_of_eigenvalues):
 
 
 def main():
-   """Contruction of Finite Type Covering Graphs using Monodromy Representation"""
+   """We want to construct all possible n sheeted covers for the base space. For that, ewe require the user input: The number of sheets the cover should
+    have, n, and the fundamental group of the base space. The integer n will be used to construct the permutation matrices so that we can build the covering
+    spaces using the fundamental group of the base space (the theory utilised is the Monodromy Representation)."""
 
-   """We first construct the codomain of the monodromy representation S_n"""
    size_of_list = int(input("What do you want the size of n in S_n to be\n"))
    s_n = list(permutation_list(size_of_list))
    permutation_matrices = build_permutation_matrices(s_n, size_of_list)
    pairs_of_permutation_matrices = list(itertools.combinations(permutation_matrices,2))
 
-   """Here we are asking the user for the input on the generators of the free group so that the monodromy representation can be built"""
    generators_for_free_group = input("What do you want the of generators for free group to be\n")
    free_group = free_group_generator(generators_for_free_group)
 
-   """In this section of the code, we define the Pseudo-Anosov Function"""
+   """In this section of the code, we define the Pseudo-Anosov Function that we want to find the virtual homological spectral radius for"""
    inverse_of_a = "-" + str(a)
    inverse_of_b = "-" + str(b)
    #pseudo_anosov_function = {a: [str(a), str(inverse_of_b) ,str(a)], b: [str(b),str(inverse_of_a)], inverse_of_a: [str(inverse_of_a), str(b), str(inverse_of_a)], inverse_of_b: [str(a), str(inverse_of_b)]}
-   #pseudo_anosov_function = {a: [str(a), str(b), str(a)], b: [str(b), str(a)],inverse_of_a: [str(inverse_of_a), str(inverse_of_b), str(inverse_of_a)], inverse_of_b: [str(inverse_of_a), str(inverse_of_b)]}
-   pseudo_anosov_function = {a: [str(a), str(b), str(a)], b: [str(a), str(b)],inverse_of_a: [str(inverse_of_a), str(inverse_of_b), str(inverse_of_a)],inverse_of_b: [str(inverse_of_b), str(inverse_of_a)]}
+   pseudo_anosov_function = {a: [str(a), str(b), str(a)], b: [str(b), str(a)],inverse_of_a: [str(inverse_of_a), str(inverse_of_b), str(inverse_of_a)], inverse_of_b: [str(inverse_of_a), str(inverse_of_b)]}
+   #pseudo_anosov_function = {a: [str(a), str(b), str(a)], b: [str(a), str(b)],inverse_of_a: [str(inverse_of_a), str(inverse_of_b), str(inverse_of_a)],inverse_of_b: [str(inverse_of_b), str(inverse_of_a)]}
    print("The Psuedo-Anosov function is (In Penner Construction Form) " + str(pseudo_anosov_function))
 
+   """The table here stores the necessary information from each covering graph we generate, which we will compute later: The edges forming the 
+   covering graph, spanning tree edges, fundamental group and so on"""
    table_header = ["Row Number", "rho", "Covering Graph Edges", "Spanning Tree Edges", "Number of Edges in Covering Graph but not Spanning Tree", "List of paths in spanning tree from base point 1", "Spanning Tree Paths as Words", "Generators_for_Fundamental_Group_of_Covering_Graph", "Test to see if all edges not in spanning tree is accounted for", "Where does the pseudo-anosov map send the generators of the fundamental group of the covering space to?", "Can the function be lifted?", "Homological Matrix", "Homological Matrix without spanning tree edges", "eigenvalues", "Absolute Value of Eigenvalues", "Maximum Absolute Eigenvalue" ]
    table = []
    table.append(table_header)
    table_row_number = 1
 
-   """The Following array is defined to be the collection of all spectral radii, one from each cover"""
+   """The Following array is defined to be the collection of all spectral radii, one from each cover. This is so we can get D_{h}(f) so that we can test
+   the bounds"""
    set_of_max_eigenvalue_from_each_covering_space = []
 
+   """From here, we will be performing computations on each homomorphism from the fundamental group of base space to the pair of permutation matrices. 
+   We will first generate the covering graph associated to the monodromy representation and then check if its connected."""
    for i in pairs_of_permutation_matrices:
        column_for_table = []
        matrix_1 = i[0]
@@ -1142,21 +787,35 @@ def main():
        covering_graph_visualisation, covering_space_edges_set, dict_from_loops_to_words = drawing_covering_space(covering_vertex_set, covering_space_edges,rho , generators_for_free_group, size_of_list)
        number_of_edges_for_check_later_on = len(covering_space_edges_set)
 
+       """Check if the covering graph is connected"""
        if determine_connectedness(covering_graph_visualisation):
+           """In the following function, we determine the spanning tree edges of the covering graph"""
            spanning_tree_edges = create_spanning_tree(covering_vertex_set, rho, size_of_list)
+
+           """The function below is one of the test I have put in place to determine the function above is not wrong. Numerically, we check if the
+            number of spanning tree edges we have are correct by using the fact that size of spanning tree edges set == number of vertices - 1"""
            if len(spanning_tree_edges) != len(covering_space_edges)-size_of_list-1:
                print(str(table_row_number) + "th iteration fails for number of edges in spanning tree")
-           list_of_all_paths_from_1 = get_all_simple_paths_from_1(spanning_tree_edges, size_of_list)
 
+           """In these 2 functions below, we generate all the paths from the base point to every other vertex in the covering graph, using only the 
+           spanning tree edges. After we get the paths, note that these paths will be labeled based on the vertices they connect. So, as each edge in
+           the covering graph corresponds to the a generator from the fundamental group of the base space, we rewrite this paths in terms of the
+           generators from the fundamental group of the base space."""
+           list_of_all_paths_from_1 = get_all_simple_paths_from_1(spanning_tree_edges, size_of_list)
            spanning_tree_path_as_words = paths_in_spanning_tree_to_words(list_of_all_paths_from_1, dict_from_loops_to_words, rho, generators_for_free_group)
 
+           """We now find the fundamental group of the covering space. As the base space is a graph, the covering space is also a graph. Thus, the fundamental
+           group of the covering graph has no relations. We use techniques from Combinatorial Group Theory to find these generators."""
            loops_in_covering_graph_as_words = construct_loops_in_covering_graph_and_their_words(spanning_tree_path_as_words, list_of_all_paths_from_1, size_of_list, covering_space_edges_set, dict_from_loops_to_words, rho, generators_for_free_group)
 
+           """We now see how the pseudo-Anosov function acts on the generators of the fundamental group of the covering graph. As the lift of the function 
+           is not defined, we will use the commutative diagram to find how the pseudo-Anosov function acts on the generators of 
+           the fundamental group of the covering graph. This is vital to check if the function can be lifted, which is done by the 2nd function."""
            where_words_in_fundamental_group_is_sent_to = where_fundamental_group_is_sent_to(loops_in_covering_graph_as_words, pseudo_anosov_function)
-
            does_pseudo_anosov_lift = test_for_list(where_words_in_fundamental_group_is_sent_to, rho, covering_vertex_set)
 
            if does_pseudo_anosov_lift == "This passes the test":
+               """If the pseudo-anosov function can lift, we can compute the virtual homological spectral radius, which we will do so now."""
                #print(where_words_in_fundamental_group_is_sent_to)
                column_for_table.append(table_row_number)
                column_for_table.append(rho)
@@ -1178,13 +837,18 @@ def main():
                column_for_table.append(completed_homological_matrix)
                final_homological_matrix = construct_final_homological_matrix(completed_homological_matrix, spanning_tree_edges,covering_space_edges_set, size_of_list, generators_for_free_group)
                column_for_table.append(final_homological_matrix)
+
+               """The steps above have completed constructing the homological matrix representation for the given cover and function. Now, we collect the relevant 
+               information we need to test the bounds"""
                eigenvalues = calculate_eigenvalues(final_homological_matrix)
                column_for_table.append(eigenvalues)
                absolute_value_of_eigenvalues = construct_absolute_value_of_eigenvalues(eigenvalues)
                column_for_table.append(absolute_value_of_eigenvalues)
                max_absol_eigenvalue = getting_the_max_asol_eigenvalue(absolute_value_of_eigenvalues)
-               if max_absol_eigenvalue > 2.65:
-                   print(column_for_table)
+               #if max_absol_eigenvalue > 2.9:
+                   #print(table_row_number)
+               #if max_absol_eigenvalue > 2.65:
+                   #print(column_for_table)
                set_of_max_eigenvalue_from_each_covering_space.append(max_absol_eigenvalue)
 
 
@@ -1196,22 +860,23 @@ def main():
            table_row_number = table_row_number + 1
 
    final_table = tabulate(table, headers='firstrow')
-   #print(final_table)
-   #print("Total number of covering spaces is: " + str(table_row_number))
-   #print("The set consisting of spectral eigenvalues, one from each finite cover: " + str(set_of_max_eigenvalue_from_each_covering_space))
+   print(final_table)
+   #I substracted 1 below because table number +1 at end of each cover. So after last cover will have an additional +!
+   print("Total number of covering spaces is: " + str(table_row_number-1))
+   print("The set consisting of spectral eigenvalues, one from each finite cover: " + str(set_of_max_eigenvalue_from_each_covering_space))
    D_h_f = max(set_of_max_eigenvalue_from_each_covering_space)
-   #print("D_h(f) is: " + str(D_h_f))
-   #print("The logarithm of D_h(f) is: " + str(math.log(D_h_f)))
+   print("D_h(f) is: " + str(D_h_f))
+   print("The logarithm of D_h(f) is: " + str(math.log(D_h_f)))
    x_axis = set_of_max_eigenvalue_from_each_covering_space
-   #print(x_axis)
+   print(x_axis)
    y_axis = []
    for i in range(1,len(set_of_max_eigenvalue_from_each_covering_space)+1):
        y_axis.append(i)
-   #print(y_axis)
+   print(y_axis)
    plt.plot(y_axis,x_axis, "ob")
    plt.xlabel("Finite Covers")
    plt.ylabel("Spectral Radius from Each Finite Type Cover")
-   #plt.show()
+   plt.show()
 
 
 
